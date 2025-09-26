@@ -131,12 +131,12 @@ jobs:
       - name: Build documentation
         run: cargo doc --no-deps --all-features
       
-      - name: Deploy documentation
-        if: github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/doc
+      #- name: Deploy documentation
+      #  if: github.ref == 'refs/heads/main'
+      #  uses: peaceiris/actions-gh-pages@v3
+      #  with:
+      #    github_token: ${{ secrets.GITHUB_TOKEN }}
+      #    publish_dir: ./target/doc
 
   examples:
     name: Examples
