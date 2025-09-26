@@ -3,12 +3,10 @@
 use num_bigint::BigUint;
 use std::fmt;
 
-#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// Homomorphic encryption mode
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HomomorphicMode {
     /// Standard ElGamal - supports multiplication of plaintexts
     Multiplicative,
@@ -26,8 +24,7 @@ impl fmt::Display for HomomorphicMode {
 }
 
 /// ElGamal ciphertext (c1, c2)
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Ciphertext {
     pub(crate) c1: BigUint,
     pub(crate) c2: BigUint,

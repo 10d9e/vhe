@@ -362,10 +362,10 @@ The library includes several NIZK proof types:
 cargo run --example basic_encryption
 
 # Operator overrides demonstration
-cargo run --example operator_overrides --features serde
+cargo run --example operator_overrides
 
 # Verifiable operators with proofs
-cargo run --example verifiable_operators --features serde
+cargo run --example verifiable_operators
 
 # Privacy-preserving voting system
 cargo run --example voting_system

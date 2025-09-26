@@ -12,7 +12,7 @@ use crate::utils::{mod_exp, mod_inverse};
 
 /// Proof of knowledge of discrete log
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ProofOfKnowledge {
     pub commitment: BigUint,
     pub challenge: BigUint,
@@ -21,7 +21,7 @@ pub struct ProofOfKnowledge {
 
 /// Proof that a ciphertext is a correct encryption
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ProofOfCorrectEncryption {
     pub commitment1: BigUint,
     pub commitment2: BigUint,
@@ -31,7 +31,7 @@ pub struct ProofOfCorrectEncryption {
 
 /// Proof that two ciphertexts encrypt the same plaintext
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ProofOfEquality {
     pub commitment1: BigUint,
     pub commitment2: BigUint,
@@ -43,7 +43,7 @@ pub struct ProofOfEquality {
 
 /// Proof that a homomorphic operation was performed correctly
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ProofOfCorrectOperation {
     pub commitment1: BigUint,
     pub commitment2: BigUint,
@@ -55,7 +55,7 @@ pub struct ProofOfCorrectOperation {
 
 /// Proof that a re-randomization was performed correctly
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ProofOfReRandomization {
     pub commitment1: BigUint,
     pub commitment2: BigUint,

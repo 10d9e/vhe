@@ -5,19 +5,15 @@ use num_traits::One;
 use rand::thread_rng;
 use std::fmt;
 
-#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-#[cfg(feature = "serde")]
 use std::fs::File;
-#[cfg(feature = "serde")]
 use std::io::{BufReader, BufWriter};
 
 use crate::error::{ElGamalError, Result};
 use crate::utils::{find_generator, generate_safe_prime, generate_safe_prime_lenient, mod_exp};
 
 /// ElGamal public key
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PublicKey {
     pub(crate) p: BigUint, // Prime modulus
     pub(crate) g: BigUint, // Generator
@@ -31,13 +27,11 @@ impl PublicKey {
     }
 
     /// Serialize the public key to bytes using bincode
-    #[cfg(feature = "serde")]
     pub fn to_bytes(&self) -> Result<Vec<u8>> {
         bincode::serialize(self).map_err(|e| ElGamalError::IOError(e.to_string()))
     }
 
     /// Deserialize a public key from bytes using bincode
-    #[cfg(feature = "serde")]
     pub fn from_bytes(data: &[u8]) -> Result<Self> {
         let key: PublicKey =
             bincode::deserialize(data).map_err(|e| ElGamalError::IOError(e.to_string()))?;
@@ -99,8 +93,7 @@ impl fmt::Display for PublicKey {
 }
 
 /// ElGamal private key
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PrivateKey {
     pub(crate) x: BigUint, // Secret exponent
 }
@@ -117,13 +110,11 @@ impl PrivateKey {
     }
 
     /// Serialize the private key to bytes using bincode
-    #[cfg(feature = "serde")]
     pub fn to_bytes(&self) -> Result<Vec<u8>> {
         bincode::serialize(self).map_err(|e| ElGamalError::IOError(e.to_string()))
     }
 
     /// Deserialize a private key from bytes using bincode
-    #[cfg(feature = "serde")]
     pub fn from_bytes(data: &[u8]) -> Result<Self> {
         let key: PrivateKey =
             bincode::deserialize(data).map_err(|e| ElGamalError::IOError(e.to_string()))?;
@@ -138,8 +129,7 @@ impl fmt::Display for PrivateKey {
 }
 
 /// ElGamal key pair
-#[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KeyPair {
     pub public_key: PublicKey,
     pub private_key: PrivateKey,
@@ -147,13 +137,11 @@ pub struct KeyPair {
 
 impl KeyPair {
     /// Serialize the key pair to bytes using bincode
-    #[cfg(feature = "serde")]
     pub fn to_bytes(&self) -> Result<Vec<u8>> {
         bincode::serialize(self).map_err(|e| ElGamalError::IOError(e.to_string()))
     }
 
     /// Deserialize a key pair from bytes using bincode
-    #[cfg(feature = "serde")]
     pub fn from_bytes(data: &[u8]) -> Result<Self> {
         let keypair: KeyPair =
             bincode::deserialize(data).map_err(|e| ElGamalError::IOError(e.to_string()))?;
@@ -177,7 +165,6 @@ impl KeyPair {
         Ok(keypair)
     }
 
-    #[cfg(feature = "serde")]
     pub fn load_from_file(bit_size: u64) -> Result<Self> {
         let file_path = format!(".key_{}.bin", bit_size);
         let file = File::open(file_path).map_err(|e| ElGamalError::IOError(e.to_string()))?;
@@ -188,29 +175,12 @@ impl KeyPair {
         Ok(keypair)
     }
 
-    #[cfg(not(feature = "serde"))]
-    pub fn load_from_file(_bit_size: u64) -> Result<Self> {
-        // When serde is not available, we can't load from file
-        Err(ElGamalError::IOError(
-            "Serialization not available without serde feature".to_string(),
-        ))
-    }
-
-    #[cfg(feature = "serde")]
     pub fn save(&self, bit_size: u64) -> Result<()> {
         let file_path = format!(".key_{}.bin", bit_size);
         let file = File::create(file_path).map_err(|e| ElGamalError::IOError(e.to_string()))?;
         let writer = BufWriter::new(file);
         bincode::serialize_into(writer, self).map_err(|e| ElGamalError::IOError(e.to_string()))?;
         Ok(())
-    }
-
-    #[cfg(not(feature = "serde"))]
-    pub fn save(&self, _bit_size: u64) -> Result<()> {
-        // When serde is not available, we can't save to file
-        Err(ElGamalError::IOError(
-            "Serialization not available without serde feature".to_string(),
-        ))
     }
 
     /// Generate a new ElGamal key pair with specified bit size
@@ -410,7 +380,6 @@ mod tests {
         assert!(keypair.public_key.bit_size() <= 520);
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn test_public_key_bincode_serialization() {
         let keypair = KeyPair::generate_for_testing(512).unwrap();
@@ -426,7 +395,6 @@ mod tests {
         assert!(deserialized.validate().is_ok());
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn test_private_key_bincode_serialization() {
         let keypair = KeyPair::generate_for_testing(512).unwrap();
@@ -441,7 +409,6 @@ mod tests {
         assert_eq!(private_key, &deserialized);
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn test_keypair_bincode_serialization() {
         let keypair = KeyPair::generate_for_testing(512).unwrap();
@@ -457,7 +424,6 @@ mod tests {
         assert!(deserialized.public_key.validate().is_ok());
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn test_keypair_file_operations() {
         let keypair = KeyPair::generate_for_testing(512).unwrap();
@@ -473,7 +439,6 @@ mod tests {
         let _ = std::fs::remove_file(format!(".key_{}.bin", bit_size));
     }
 
-    #[cfg(feature = "serde")]
     #[test]
     fn test_serialization_size_comparison() {
         let keypair = KeyPair::generate_for_testing(512).unwrap();
