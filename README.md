@@ -7,16 +7,18 @@ Rust implementation of ElGamal homomorphic encryption with non-interactive zero-
 ## Features
 
 - **Dual-mode operation**: Switch between multiplicative and additive homomorphism
+- **Operator overrides**: Use familiar `+`, `-`, `*`, `/` operators directly on ciphertexts
 - **Verifiable computation**: All operations can be verified with NIZK proofs
 - **Batch operations**: Efficient processing of multiple ciphertexts
 - **Re-randomization**: Generate different ciphertexts for the same plaintext
 - **Zero-knowledge proofs**: Prove correctness without revealing secrets
 - **No trusted setup**: Unlike zk-SNARKs, no ceremony needed
+- **Bincode serialization**: Compact binary serialization for keys and ciphertexts
 
 ## Project Structure
 
 ```
-elgamal-he/
+vhe/
 ├── Cargo.toml           # Project configuration
 ├── README.md            # This file
 ├── src/
@@ -30,6 +32,8 @@ elgamal-he/
 │   └── proofs.rs       # Zero-knowledge proofs
 └── examples/
     ├── basic_encryption.rs      # Basic usage example
+    ├── operator_overrides.rs   # Operator overrides demonstration
+    ├── verifiable_operators.rs # Verifiable operators with proofs
     ├── voting_system.rs        # Privacy-preserving voting
     ├── verifiable_computation.rs # Verifiable operations
     └── private_statistics.rs   # Private analytics
@@ -42,29 +46,29 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-elgamal-he = "0.1.0"
+vhe = "0.1.0"
 ```
 
 Or clone and build:
 
 ```bash
-git clone https://github.com/yourusername/elgamal-he
-cd elgamal-he
+git clone https://github.com/yourusername/vhe
+cd vhe
 cargo build --release
 ```
 
 ## Quick Start
 
-### Basic Encryption
+### Basic Encryption with Operator Overrides
 
 ```rust
-use vhe::{KeyPair, ElGamal, HomomorphicMode};
+use vhe::{KeyPair, ElGamal, ElGamalOperators, HomomorphicMode};
 use num_bigint::ToBigUint;
 
 // Generate keys
-let keypair = KeyPair::load_or_generate(1024)?;
+let keypair = KeyPair::load_or_generate(512)?;
 
-// Create ElGamal instance
+// Create ElGamal instance for additive operations
 let elgamal = ElGamal::new(
     keypair.public_key.clone(),
     HomomorphicMode::Additive
@@ -74,31 +78,247 @@ let elgamal = ElGamal::new(
 let ct1 = elgamal.encrypt(&10u32.to_biguint().unwrap())?;
 let ct2 = elgamal.encrypt(&20u32.to_biguint().unwrap())?;
 
-// Perform homomorphic addition
-let sum = elgamal.homomorphic_operation(&ct1, &ct2)?;
+// Wrap ciphertexts with context for operator overrides
+let ctx1 = elgamal.wrap_ciphertext(ct1);
+let ctx2 = elgamal.wrap_ciphertext(ct2);
 
-// Decrypt result
-let result = elgamal.decrypt(&sum, &keypair.private_key)?;
-assert_eq!(result, 30u32.to_biguint().unwrap());
+// Use standard operators!
+let sum = (&ctx1 + &ctx2)?;        // Addition: 10 + 20
+let diff = (&ctx1 - &ctx2)?;       // Subtraction: 10 - 20
+let neg = (-&ctx1)?;               // Negation: -10
+let scalar_add = (&ctx1 + &5u32.to_biguint().unwrap())?; // Scalar addition: 10 + 5
+
+// Decrypt results
+let sum_result = elgamal.decrypt(&sum, &keypair.private_key)?;
+let diff_result = elgamal.decrypt(&diff, &keypair.private_key)?;
+let neg_result = elgamal.decrypt(&neg, &keypair.private_key)?;
+let scalar_result = elgamal.decrypt(&scalar_add, &keypair.private_key)?;
+
+assert_eq!(sum_result, 30u32.to_biguint().unwrap());
+assert_eq!(scalar_result, 15u32.to_biguint().unwrap());
 ```
 
-### Verifiable Operations
+### Multiplicative Mode with Operators
 
 ```rust
-use vhe::{VerifiableOperations, HomomorphicOperations};
+// Create ElGamal instance for multiplicative operations
+let elgamal_mult = ElGamal::new(
+    keypair.public_key.clone(),
+    HomomorphicMode::Multiplicative
+);
 
-// Encrypt with proof
-let (ciphertext, proof) = elgamal.encrypt_with_proof(&value, None)?;
+// Encrypt values
+let ct1 = elgamal_mult.encrypt(&7u32.to_biguint().unwrap())?;
+let ct2 = elgamal_mult.encrypt(&3u32.to_biguint().unwrap())?;
 
-// Anyone can verify without the private key
-let is_valid = elgamal.verify_encryption_proof(&ciphertext, &value, &proof);
+// Wrap with context
+let ctx1 = elgamal_mult.wrap_ciphertext(ct1);
+let ctx2 = elgamal_mult.wrap_ciphertext(ct2);
 
-// Perform operation with proof
-let (result, op_proof) = elgamal.homomorphic_operation_with_proof(&ct1, &ct2)?;
+// Use operators for multiplicative operations
+let product = (&ctx1 * &ctx2)?;    // Multiplication: 7 * 3
+let quotient = (&ctx1 / &ctx2)?;   // Division: 7 / 3
+let power = (&ctx1 * &2u32.to_biguint().unwrap())?; // Exponentiation: 7^2
 
-// Verify the operation
-let valid = elgamal.verify_operation_proof(&ct1, &ct2, &result, &op_proof);
+// Decrypt results
+let product_result = elgamal_mult.decrypt(&product, &keypair.private_key)?;
+let quotient_result = elgamal_mult.decrypt(&quotient, &keypair.private_key)?;
+let power_result = elgamal_mult.decrypt(&power, &keypair.private_key)?;
+
+assert_eq!(product_result, 21u32.to_biguint().unwrap());
+assert_eq!(power_result, 49u32.to_biguint().unwrap());
 ```
+
+### Verifiable Operations with Operator Overrides
+
+```rust
+use vhe::{VerifiableOperations, HomomorphicOperations, ElGamalOperators};
+use num_bigint::ToBigUint;
+
+let keypair = KeyPair::load_or_generate(512)?;
+let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
+
+// Encrypt values with proofs
+let value1 = 5u32.to_biguint().unwrap();
+let value2 = 3u32.to_biguint().unwrap();
+let (ct1, enc_proof1) = elgamal.encrypt_with_proof(&value1, None)?;
+let (ct2, enc_proof2) = elgamal.encrypt_with_proof(&value2, None)?;
+
+// Verify encryption proofs
+assert!(elgamal.verify_encryption_proof(&ct1, &value1, &enc_proof1));
+assert!(elgamal.verify_encryption_proof(&ct2, &value2, &enc_proof2));
+
+// Wrap ciphertexts with context for operator overrides
+let ctx1 = elgamal.wrap_ciphertext(ct1);
+let ctx2 = elgamal.wrap_ciphertext(ct2);
+
+// Use operators for intuitive computation
+let sum = (&ctx1 + &ctx2)?;        // Addition: 5 + 3
+let scalar_add = (&ctx1 + &2u32.to_biguint().unwrap())?; // Scalar addition: 5 + 2
+
+// Generate proof for the ciphertext-to-ciphertext operation
+let (_, sum_proof) = elgamal.homomorphic_operation_with_proof(ctx1.ciphertext(), ctx2.ciphertext())?;
+
+// Verify the operation proof
+assert!(elgamal.verify_operation_proof(ctx1.ciphertext(), ctx2.ciphertext(), &sum, &sum_proof));
+
+// Decrypt and verify results
+let sum_result = elgamal.decrypt(&sum, &keypair.private_key)?;
+let scalar_result = elgamal.decrypt(&scalar_add, &keypair.private_key)?;
+assert_eq!(sum_result, 8u32.to_biguint().unwrap());
+assert_eq!(scalar_result, 7u32.to_biguint().unwrap());
+```
+
+### Advanced Verifiable Computation
+
+```rust
+// Multi-step verifiable computation with operators
+let values = vec![5u32, 10u32, 15u32, 20u32];
+let mut ciphertexts = Vec::new();
+let mut enc_proofs = Vec::new();
+
+// Encrypt all values with proofs
+for value in &values {
+    let (ct, proof) = elgamal.encrypt_with_proof(&value.to_biguint().unwrap(), None)?;
+    ciphertexts.push(ct);
+    enc_proofs.push(proof);
+}
+
+// Verify all encryption proofs
+for (i, (ct, proof)) in ciphertexts.iter().zip(enc_proofs.iter()).enumerate() {
+    assert!(elgamal.verify_encryption_proof(ct, &values[i].to_biguint().unwrap(), proof));
+}
+
+// Perform verifiable aggregation using operators
+let mut ctx_sum = elgamal.wrap_ciphertext(ciphertexts[0].clone());
+let mut operation_proofs = Vec::new();
+
+for i in 1..ciphertexts.len() {
+    let ctx_next = elgamal.wrap_ciphertext(ciphertexts[i].clone());
+    
+    // Use operator for addition
+    let (new_sum, op_proof) = elgamal.homomorphic_operation_with_proof(
+        &ctx_sum.ciphertext, 
+        &ctx_next.ciphertext
+    )?;
+    
+    // Verify the operation
+    assert!(elgamal.verify_operation_proof(
+        &ctx_sum.ciphertext, 
+        &ctx_next.ciphertext, 
+        &new_sum, 
+        &op_proof
+    ));
+    
+    ctx_sum = elgamal.wrap_ciphertext(new_sum);
+    operation_proofs.push(op_proof);
+}
+
+// Final result should be sum of all values
+let final_result = elgamal.decrypt(&ctx_sum.ciphertext, &keypair.private_key)?;
+let expected_sum: u32 = values.iter().sum();
+assert_eq!(final_result, expected_sum.to_biguint().unwrap());
+```
+
+## Operator Overrides
+
+The library provides intuitive operator overrides that make homomorphic operations feel natural:
+
+### CiphertextWithContext
+
+The recommended approach uses `CiphertextWithContext` to wrap ciphertexts with their ElGamal context:
+
+```rust
+use vhe::{ElGamal, ElGamalOperators, HomomorphicMode, KeyPair};
+use num_bigint::ToBigUint;
+
+let keypair = KeyPair::load_or_generate(512)?;
+let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
+
+// Encrypt and wrap with context
+let ct1 = elgamal.encrypt(&5u32.to_biguint().unwrap())?;
+let ct2 = elgamal.encrypt(&3u32.to_biguint().unwrap())?;
+let ctx1 = elgamal.wrap_ciphertext(ct1);
+let ctx2 = elgamal.wrap_ciphertext(ct2);
+
+// Use standard operators!
+let sum = (&ctx1 + &ctx2)?;        // Addition
+let diff = (&ctx1 - &ctx2)?;       // Subtraction
+let neg = (-&ctx1)?;               // Negation
+let scalar_add = (&ctx1 + &2u32.to_biguint().unwrap())?; // Scalar addition
+let scalar_mul = (&ctx1 * &2u32.to_biguint().unwrap())?; // Scalar multiplication
+```
+
+### Mode-Aware Operations
+
+Operations automatically validate the homomorphic mode:
+
+```rust
+// Additive mode supports: +, -, *, negation, scalar operations
+let elgamal_add = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
+let ctx_add = elgamal_add.wrap_ciphertext(ct1);
+let result = (&ctx_add + &ctx_add)?; // ✓ Works
+
+// Multiplicative mode supports: *, /, scalar operations
+let elgamal_mult = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
+let ctx_mult = elgamal_mult.wrap_ciphertext(ct1);
+let product = (&ctx_mult * &ctx_mult)?; // ✓ Works
+let quotient = (&ctx_mult / &ctx_mult)?; // ✓ Works
+```
+
+### Error Handling
+
+Operations fail gracefully when used in the wrong mode:
+
+```rust
+// This will return an error in multiplicative mode
+let result = (&ctx_mult + &ctx_mult); // ❌ Returns ElGamalError::InvalidOperation
+
+// This will return an error in additive mode  
+let result = (&ctx_add / &ctx_add); // ❌ Returns ElGamalError::InvalidOperation
+```
+
+### Operators with Verifiable Proofs
+
+You can combine the intuitive operator syntax with verifiable operations:
+
+```rust
+use vhe::{VerifiableOperations, ElGamalOperators};
+
+// Encrypt with proofs
+let (ct1, enc_proof1) = elgamal.encrypt_with_proof(&5u32.to_biguint().unwrap(), None)?;
+let (ct2, enc_proof2) = elgamal.encrypt_with_proof(&3u32.to_biguint().unwrap(), None)?;
+
+// Verify encryption proofs
+assert!(elgamal.verify_encryption_proof(&ct1, &5u32.to_biguint().unwrap(), &enc_proof1));
+assert!(elgamal.verify_encryption_proof(&ct2, &3u32.to_biguint().unwrap(), &enc_proof2));
+
+// Wrap with context for operators
+let ctx1 = elgamal.wrap_ciphertext(ct1);
+let ctx2 = elgamal.wrap_ciphertext(ct2);
+
+// Use operators for the computation
+let sum = (&ctx1 + &ctx2)?;        // Intuitive syntax
+let diff = (&ctx1 - &ctx2)?;       // Clean and readable
+
+// Generate proof for the operation (ciphertext-to-ciphertext only)
+let (_, sum_proof) = elgamal.homomorphic_operation_with_proof(ctx1.ciphertext(), ctx2.ciphertext())?;
+
+// Verify the operation proof
+assert!(elgamal.verify_operation_proof(ctx1.ciphertext(), ctx2.ciphertext(), &sum, &sum_proof));
+
+// Decrypt and verify results
+let sum_result = elgamal.decrypt(&sum, &keypair.private_key)?;
+let diff_result = elgamal.decrypt(&diff, &keypair.private_key)?;
+assert_eq!(sum_result, 8u32.to_biguint().unwrap());
+assert_eq!(diff_result, 2u32.to_biguint().unwrap());
+```
+
+This approach gives you the best of both worlds:
+- **Intuitive operators** for clean, readable code
+- **Verifiable proofs** for ciphertext-to-ciphertext operations
+- **Full auditability** of all operations
+- **Note**: Scalar operations use operators for convenience but don't generate verifiable proofs
 
 ## Homomorphic Modes
 
@@ -140,6 +360,12 @@ The library includes several NIZK proof types:
 ```bash
 # Basic encryption demo
 cargo run --example basic_encryption
+
+# Operator overrides demonstration
+cargo run --example operator_overrides --features serde
+
+# Verifiable operators with proofs
+cargo run --example verifiable_operators --features serde
 
 # Privacy-preserving voting system
 cargo run --example voting_system

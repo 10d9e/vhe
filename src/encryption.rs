@@ -11,6 +11,7 @@ use crate::types::{Ciphertext, ElGamalConfig, HomomorphicMode};
 use crate::utils::{mod_exp, mod_inverse};
 
 /// ElGamal homomorphic encryption system
+#[derive(Clone, Debug)]
 pub struct ElGamal {
     pub public_key: PublicKey,
     pub(crate) mode: HomomorphicMode,

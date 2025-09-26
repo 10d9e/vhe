@@ -14,6 +14,7 @@
 //!
 //! ## Example
 //!
+//! ### Basic Usage
 //! ```rust
 //! use vhe::{KeyPair, ElGamal, HomomorphicMode, HomomorphicOperations};
 //!
@@ -34,6 +35,36 @@
 //! let result = elgamal.decrypt(&sum, &keypair.private_key).unwrap();
 //! assert_eq!(result, 30u32.into());
 //! ```
+//!
+//! ### Using Operator Overrides
+//! ```rust
+//! use vhe::{KeyPair, ElGamal, HomomorphicMode, ElGamalOperators};
+//! use std::ops::{Add, Sub, Mul, Div, Neg};
+//!
+//! // Generate keys
+//! let keypair = KeyPair::load_or_generate(512).unwrap();
+//!
+//! // Create ElGamal instance for additive operations
+//! let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
+//!
+//! // Encrypt values
+//! let ct1 = elgamal.encrypt(&10u32.into()).unwrap();
+//! let ct2 = elgamal.encrypt(&20u32.into()).unwrap();
+//!
+//! // Wrap ciphertexts with context for operator overrides
+//! let ctx1 = elgamal.wrap_ciphertext(ct1);
+//! let ctx2 = elgamal.wrap_ciphertext(ct2);
+//!
+//! // Use standard operators!
+//! let sum = (&ctx1 + &ctx2).unwrap();        // Addition
+//! let diff = (&ctx1 - &ctx2).unwrap();       // Subtraction
+//! let neg = (-&ctx1).unwrap();               // Negation
+//! let scalar_add = (&ctx1 + &5u32.into()).unwrap(); // Scalar addition
+//!
+//! // Decrypt results
+//! let sum_result = elgamal.decrypt(&sum, &keypair.private_key).unwrap();
+//! assert_eq!(sum_result, 30u32.into());
+//! ```
 
 pub mod encryption;
 pub mod error;
@@ -46,7 +77,9 @@ pub mod utils;
 // Re-export main types for convenience
 pub use encryption::ElGamal;
 pub use error::{ElGamalError, Result};
-pub use homomorphic::HomomorphicOperations;
+pub use homomorphic::{
+    CiphertextWithContext, ElGamalOperators, HomomorphicElGamal, HomomorphicOperations,
+};
 pub use keys::{KeyPair, PrivateKey, PublicKey};
 pub use proofs::{
     ProofOfCorrectEncryption, ProofOfCorrectOperation, ProofOfEquality, ProofOfKnowledge,
