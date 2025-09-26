@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  # Development environment
+  dev:
+    build:
+      context: .
+      target: builder
+    image: elgamal-he:dev
+    container_name: elgamal-he-dev
+    volumes:
+      - .:/usr/src/elgamal-he
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/usr/src/elgamal-he/target
+    working_dir: /usr/src/elgamal-he
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+    environment:
+      - RUST_BACKTRACE=1
+      - RUST_LOG=debug
+    networks:
+      - elgamal-net
+
+  # Test runner
+  test:
+    build:
+      context: .
+      target: builder
+    image: elgamal-he:test
+    container_name: elgamal-he-test
+    volumes:
+      - .:/usr/src/elgamal-he
+      - cargo-cache:/usr/local/cargo/registry
+    working_dir: /usr/src/elgamal-he
+    command: cargo test --all-features
+    environment:
+      - RUST_BACKTRACE=1
+    networks:
+      - elgamal-net
+
+  # Benchmark runner
+  bench:
+    build:
+      context: .
+      target: builder
+    image: elgamal-he:bench
+    container_name: elgamal-he-bench
+    volumes:
+      - .:/usr/src/elgamal-he
+      - cargo-cache:/usr/local/cargo/registry
+      - ./target/criterion:/usr/src/elgamal-he/target/criterion
+    working_dir: /usr/src/elgamal-he
+    command: cargo bench
+    environment:
+      - RUST_BACKTRACE=1
+    networks:
+      - elgamal-net
+
+  # Documentation server
+  docs:
+    build:
+      context: .
+      target: builder
+    image: elgamal-he:docs
+    container_name: elgamal-he-docs
+    volumes:
+      - .:/usr/src/elgamal-he
+      - cargo-cache:/usr/local/cargo/registry
+    working_dir: /usr/src/elgamal-he
+    command: >
+      sh -c "cargo doc --no-deps --all-features &&
+        cd target/doc &&
+        python3 -m http.server 8000"
+    ports:
+      - "8000:8000"
+    networks:
+      - elgamal-net
+
+  # Example runner - Basic encryption
+  example-basic:
+    build:
+      context: .
+    image: elgamal-he:latest
+    container_name: elgamal-he-example-basic
+    command: basic_encryption
+    networks:
+      - elgamal-net
+
+  # Example runner - Voting system
+  example-voting:
+    build:
+      context: .
+    image: elgamal-he:latest
+    container_name: elgamal-he-example-voting
+    command: voting_system
+    networks:
+      - elgamal-net
+
+  # Example runner - Verifiable computation
+  example-verifiable:
+    build:
+      context: .
+    image: elgamal-he:latest
+    container_name: elgamal-he-example-verifiable
+    command: verifiable_computation
+    networks:
+      - elgamal-net
+
+  # Example runner - Private statistics
+  example-stats:
+    build:
+      context: .
+    image: elgamal-he:latest
+    container_name: elgamal-he-example-stats
+    command: private_statistics
+    networks:
+      - elgamal-net
+
+volumes:
+  cargo-cache:
+    name: elgamal-he-cargo-cache
+  target-cache:
+    name: elgamal-he-target-cache
+
+networks:
+  elgamal-net:
+    name: elgamal-network
+    driver: bridge

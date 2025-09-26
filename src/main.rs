@@ -8,7 +8,7 @@
 
 use num_bigint::{BigInt, BigUint, RandBigInt, ToBigInt, ToBigUint};
 use num_integer::Integer;
-use num_traits::{One, Signed, Zero};
+use num_traits::{One, Zero};
 use rand::thread_rng;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;

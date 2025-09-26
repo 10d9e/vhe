@@ -1,7 +1,13 @@
 [package]
 name = "vhe"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+authors = ["lodge <jay.logelin@gmail.com>"]
+description = "ElGamal homomorphic encryption library with verifiable operations"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/yourusername/elgamal-he"
+keywords = ["cryptography", "homomorphic-encryption", "elgamal", "zero-knowledge", "verifiable"]
+categories = ["cryptography", "mathematics"]
 
 [dependencies]
 num-bigint = { version = "0.4", features = ["rand"] }
@@ -9,3 +15,34 @@ num-traits = "0.2"
 num-integer = "0.1"
 rand = "0.8"
 sha2 = "0.10"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"], optional = true }
+
+[dev-dependencies]
+criterion = "0.5"
+hex = "0.4"
+
+[features]
+default = []
+serde = ["dep:serde", "num-bigint/serde"]
+
+[[bench]]
+name = "benchmarks"
+harness = false
+
+[[example]]
+name = "basic_encryption"
+
+[[example]]
+name = "voting_system"
+
+[[example]]
+name = "verifiable_computation"
+
+[[example]]
+name = "private_statistics"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
