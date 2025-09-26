@@ -1,6 +1,6 @@
 //! Non-interactive zero-knowledge proofs for verifiable operations
 
-use num_bigint::{BigUint, RandBigInt, ToBigUint};
+use num_bigint::{BigUint, RandBigInt};
 use num_traits::One;
 use rand::thread_rng;
 use sha2::{Digest, Sha256};
@@ -368,8 +368,6 @@ impl VerifiableOperations for ElGamal {
         ct2: &Ciphertext,
         proof: &ProofOfEquality,
     ) -> bool {
-        let p = &self.public_key.p;
-
         // Recompute challenge
         let expected_challenge = self.fiat_shamir_challenge(&[
             &ct1.c1,
@@ -595,6 +593,8 @@ mod tests {
 
     #[test]
     fn test_verifiable_encryption() {
+        use num_bigint::ToBigUint;
+
         // Use testing generation for faster, more reliable tests
         let keypair = KeyPair::generate_for_testing(512).unwrap();
         let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);

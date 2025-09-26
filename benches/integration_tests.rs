@@ -1,6 +1,6 @@
 //! Integration tests for the ElGamal library
 
-use num_bigint::{BigUint, ToBigUint};
+use num_bigint::ToBigUint;
 use vhe::{
     Ciphertext, ElGamal, HomomorphicMode, HomomorphicOperations, KeyPair, VerifiableOperations,
 };

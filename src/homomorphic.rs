@@ -1,11 +1,10 @@
 //! Homomorphic operations on ciphertexts
 
-use num_bigint::{BigUint, ToBigUint};
+use num_bigint::BigUint;
 use num_traits::One;
 
 use crate::encryption::ElGamal;
 use crate::error::{ElGamalError, Result};
-use crate::keys::{KeyPair, PrivateKey};
 use crate::types::{Ciphertext, HomomorphicMode};
 use crate::utils::{mod_exp, mod_inverse};
 
@@ -252,6 +251,7 @@ impl HomomorphicOperations for ElGamal {
 mod tests {
     use super::*;
     use crate::keys::KeyPair;
+    use num_bigint::ToBigUint;
 
     #[test]
     fn test_homomorphic_multiplication() {
