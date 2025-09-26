@@ -19,7 +19,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-vhe = "0.1.0"
+vhe = "0.1.1"
 ```
 
 Or clone and build:

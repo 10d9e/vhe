@@ -1,11 +1,11 @@
 [package]
 name = "vhe"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["lodge <jay.logelin@gmail.com>"]
 description = "ElGamal homomorphic encryption library with verifiable operations"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/yourusername/elgamal-he"
+repository = "https://github.com/10d9e/vhe"
 keywords = ["cryptography", "he", "elgamal", "zero-knowledge", "verifiable"]
 categories = ["cryptography", "mathematics"]
 
