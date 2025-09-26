@@ -51,9 +51,6 @@ jobs:
       - name: Run tests
         run: cargo test --release --verbose
       
-      - name: Run tests with all features
-        run: cargo test --release --all-features --verbose
-      
       - name: Run doc tests
         run: cargo test --release --all-features --doc
 

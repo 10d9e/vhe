@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for ElGamal HE Library
 
 # Stage 1: Builder
-FROM rust:1.75-slim AS builder
+FROM rust:1.90.0-slim AS builder
 
 # Install required dependencies
 RUN apt-get update && apt-get install -y \
