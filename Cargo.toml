@@ -6,7 +6,7 @@ authors = ["lodge <jay.logelin@gmail.com>"]
 description = "ElGamal homomorphic encryption library with verifiable operations"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/yourusername/elgamal-he"
-keywords = ["cryptography", "homomorphic-encryption", "elgamal", "zero-knowledge", "verifiable"]
+keywords = ["cryptography", "he", "elgamal", "zero-knowledge", "verifiable"]
 categories = ["cryptography", "mathematics"]
 
 [dependencies]
