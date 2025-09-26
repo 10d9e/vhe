@@ -11,7 +11,7 @@ fn main() {
     // Generate key pair
     println!("Step 1: Key Generation");
     println!("{}", "-".repeat(40));
-    let keypair = KeyPair::generate(1024).expect("Failed to generate keys");
+    let keypair = KeyPair::load_or_generate(512).expect("Failed to generate keys");
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
 
     // Prove knowledge of private key

@@ -8,7 +8,7 @@ fn main() {
 
     // Generate a key pair
     println!("Generating 1024-bit key pair...");
-    let keypair = KeyPair::generate(1024).expect("Failed to generate keys");
+    let keypair = KeyPair::load_or_generate(512).expect("Failed to generate keys");
     println!("✓ Keys generated successfully");
     println!("  Public key size: {} bits", keypair.public_key.bit_size());
 

@@ -52,4 +52,7 @@ pub enum ElGamalError {
 
     #[error("Cryptographic error: {0}")]
     CryptoError(String),
+
+    #[error("IO error: {0}")]
+    IOError(String),
 }

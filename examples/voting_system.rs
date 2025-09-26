@@ -26,7 +26,7 @@ impl VotingSystem {
     /// Create a new voting system
     fn new(candidates: Vec<String>) -> Self {
         println!("Initializing voting system...");
-        let keypair = KeyPair::generate(1024).expect("Failed to generate keys");
+        let keypair = KeyPair::load_or_generate(512).expect("Failed to generate keys");
         let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
 
         VotingSystem {

@@ -26,6 +26,21 @@ impl PublicKey {
         PublicKey { p, g, h }
     }
 
+    /// Serialize the public key to bytes using bincode
+    #[cfg(feature = "serde")]
+    pub fn to_bytes(&self) -> Result<Vec<u8>> {
+        bincode::serialize(self).map_err(|e| ElGamalError::IOError(e.to_string()))
+    }
+
+    /// Deserialize a public key from bytes using bincode
+    #[cfg(feature = "serde")]
+    pub fn from_bytes(data: &[u8]) -> Result<Self> {
+        let key: PublicKey =
+            bincode::deserialize(data).map_err(|e| ElGamalError::IOError(e.to_string()))?;
+        key.validate()?;
+        Ok(key)
+    }
+
     /// Get the prime modulus
     pub fn modulus(&self) -> &BigUint {
         &self.p
@@ -96,6 +111,20 @@ impl PrivateKey {
     pub fn secret_exponent(&self) -> &BigUint {
         &self.x
     }
+
+    /// Serialize the private key to bytes using bincode
+    #[cfg(feature = "serde")]
+    pub fn to_bytes(&self) -> Result<Vec<u8>> {
+        bincode::serialize(self).map_err(|e| ElGamalError::IOError(e.to_string()))
+    }
+
+    /// Deserialize a private key from bytes using bincode
+    #[cfg(feature = "serde")]
+    pub fn from_bytes(data: &[u8]) -> Result<Self> {
+        let key: PrivateKey =
+            bincode::deserialize(data).map_err(|e| ElGamalError::IOError(e.to_string()))?;
+        Ok(key)
+    }
 }
 
 impl fmt::Display for PrivateKey {
@@ -113,6 +142,73 @@ pub struct KeyPair {
 }
 
 impl KeyPair {
+    /// Serialize the key pair to bytes using bincode
+    #[cfg(feature = "serde")]
+    pub fn to_bytes(&self) -> Result<Vec<u8>> {
+        bincode::serialize(self).map_err(|e| ElGamalError::IOError(e.to_string()))
+    }
+
+    /// Deserialize a key pair from bytes using bincode
+    #[cfg(feature = "serde")]
+    pub fn from_bytes(data: &[u8]) -> Result<Self> {
+        let keypair: KeyPair =
+            bincode::deserialize(data).map_err(|e| ElGamalError::IOError(e.to_string()))?;
+        keypair.public_key.validate()?;
+        Ok(keypair)
+    }
+
+    pub fn load_or_generate(bit_size: u64) -> Result<Self> {
+        if let Ok(keypair) = Self::load(bit_size) {
+            Ok(keypair)
+        } else {
+            let keypair = Self::generate(bit_size)?;
+            keypair.save(bit_size)?;
+            Ok(keypair)
+        }
+    }
+
+    pub fn load(bit_size: u64) -> Result<Self> {
+        let keypair = Self::load_from_file(bit_size)?;
+        keypair.public_key.validate()?;
+        Ok(keypair)
+    }
+
+    #[cfg(feature = "serde")]
+    pub fn load_from_file(bit_size: u64) -> Result<Self> {
+        let file_path = format!(".key_{}.bin", bit_size);
+        let file = File::open(file_path).map_err(|e| ElGamalError::IOError(e.to_string()))?;
+        let reader = BufReader::new(file);
+        let keypair: KeyPair =
+            bincode::deserialize_from(reader).map_err(|e| ElGamalError::IOError(e.to_string()))?;
+        keypair.public_key.validate()?;
+        Ok(keypair)
+    }
+
+    #[cfg(not(feature = "serde"))]
+    pub fn load_from_file(_bit_size: u64) -> Result<Self> {
+        // When serde is not available, we can't load from file
+        Err(ElGamalError::IOError(
+            "Serialization not available without serde feature".to_string(),
+        ))
+    }
+
+    #[cfg(feature = "serde")]
+    pub fn save(&self, bit_size: u64) -> Result<()> {
+        let file_path = format!(".key_{}.bin", bit_size);
+        let file = File::create(file_path).map_err(|e| ElGamalError::IOError(e.to_string()))?;
+        let writer = BufWriter::new(file);
+        bincode::serialize_into(writer, self).map_err(|e| ElGamalError::IOError(e.to_string()))?;
+        Ok(())
+    }
+
+    #[cfg(not(feature = "serde"))]
+    pub fn save(&self, _bit_size: u64) -> Result<()> {
+        // When serde is not available, we can't save to file
+        Err(ElGamalError::IOError(
+            "Serialization not available without serde feature".to_string(),
+        ))
+    }
+
     /// Generate a new ElGamal key pair with specified bit size
     ///
     /// # Arguments
@@ -308,5 +404,89 @@ mod tests {
         // Allow some flexibility in bit size for safe primes
         assert!(keypair.public_key.bit_size() >= 504);
         assert!(keypair.public_key.bit_size() <= 520);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_public_key_bincode_serialization() {
+        let keypair = KeyPair::generate_for_testing(512).unwrap();
+        let public_key = &keypair.public_key;
+
+        // Test serialization
+        let serialized = public_key.to_bytes().unwrap();
+        assert!(!serialized.is_empty());
+
+        // Test deserialization
+        let deserialized = PublicKey::from_bytes(&serialized).unwrap();
+        assert_eq!(public_key, &deserialized);
+        assert!(deserialized.validate().is_ok());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_private_key_bincode_serialization() {
+        let keypair = KeyPair::generate_for_testing(512).unwrap();
+        let private_key = &keypair.private_key;
+
+        // Test serialization
+        let serialized = private_key.to_bytes().unwrap();
+        assert!(!serialized.is_empty());
+
+        // Test deserialization
+        let deserialized = PrivateKey::from_bytes(&serialized).unwrap();
+        assert_eq!(private_key, &deserialized);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_keypair_bincode_serialization() {
+        let keypair = KeyPair::generate_for_testing(512).unwrap();
+
+        // Test serialization
+        let serialized = keypair.to_bytes().unwrap();
+        assert!(!serialized.is_empty());
+
+        // Test deserialization
+        let deserialized = KeyPair::from_bytes(&serialized).unwrap();
+        assert_eq!(keypair.public_key, deserialized.public_key);
+        assert_eq!(keypair.private_key, deserialized.private_key);
+        assert!(deserialized.public_key.validate().is_ok());
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_keypair_file_operations() {
+        let keypair = KeyPair::generate_for_testing(512).unwrap();
+        let bit_size = 512;
+
+        // Test saving and loading with bincode
+        keypair.save(bit_size).unwrap();
+        let loaded = KeyPair::load_from_file(bit_size).unwrap();
+        assert_eq!(keypair.public_key, loaded.public_key);
+        assert_eq!(keypair.private_key, loaded.private_key);
+
+        // Test saving and loading with JSON (backward compatibility)
+        keypair.save_json(bit_size).unwrap();
+        let loaded_json = KeyPair::load_from_json(bit_size).unwrap();
+        assert_eq!(keypair.public_key, loaded_json.public_key);
+        assert_eq!(keypair.private_key, loaded_json.private_key);
+
+        // Clean up test files
+        let _ = std::fs::remove_file(format!(".key_{}.bin", bit_size));
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_serialization_size_comparison() {
+        let keypair = KeyPair::generate_for_testing(512).unwrap();
+
+        // Compare sizes
+        let bincode_bytes = keypair.to_bytes().unwrap();
+
+        println!("Bincode size: {} bytes", bincode_bytes.len());
+        println!(
+            "Compression ratio: {:.2}x",
+            bincode_bytes.len() as f64 / bincode_bytes.len() as f64
+        );
     }
 }

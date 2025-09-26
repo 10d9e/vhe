@@ -20,7 +20,7 @@ struct PrivateStatistics {
 
 impl PrivateStatistics {
     fn new() -> Self {
-        let keypair = KeyPair::generate(1024).expect("Failed to generate keys");
+        let keypair = KeyPair::load_or_generate(512).expect("Failed to generate keys");
         let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
 
         PrivateStatistics {

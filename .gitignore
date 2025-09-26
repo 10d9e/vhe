@@ -123,6 +123,7 @@ rls*.log
 *.pfx
 private_key*
 secret*
+.key_*
 
 # Local notes
 TODO.md
