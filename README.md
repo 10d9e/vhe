@@ -1,6 +1,8 @@
 # Verifiable Homomorphic Encryption
+[![Crates.io](https://img.shields.io/crates/v/vhe)](https://crates.io/crates/vhe)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/10d9e/vhe/rust.yml?branch=main)](https://github.com/10d9e/vhe/actions)
 
-A comprehensive Rust implementation of ElGamal encryption with homomorphic properties and non-interactive zero-knowledge proofs (NIZK) for verifiable operations.
+Rust implementation of ElGamal homomorphic encryption with non-interactive zero-knowledge proofs (NIZK) for verifiable operations.
 
 ## Features
 

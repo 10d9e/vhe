@@ -55,7 +55,7 @@ jobs:
         run: cargo test --all-features --verbose
       
       - name: Run doc tests
-        run: cargo test --doc
+        run: cargo test --all-features --doc
 
   coverage:
     name: Code Coverage

@@ -69,7 +69,10 @@ mod tests {
 
     #[test]
     fn test_basic_workflow() {
+        #[cfg(feature = "serde")]
         let keypair = KeyPair::load_or_generate(512);
+        #[cfg(not(feature = "serde"))]
+        let keypair = KeyPair::generate(512);
         assert!(keypair.is_ok());
 
         let keypair = keypair.unwrap();
