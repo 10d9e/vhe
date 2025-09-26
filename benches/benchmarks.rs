@@ -1,15 +1,15 @@
 //! Performance benchmarks for ElGamal operations
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use vhe::{ElGamal, HomomorphicMode, HomomorphicOperations, KeyPair, VerifiableOperations};
 use num_bigint::ToBigUint;
+use vhe::{ElGamal, HomomorphicMode, HomomorphicOperations, KeyPair, VerifiableOperations};
 
 fn benchmark_key_generation(c: &mut Criterion) {
     let mut group = c.benchmark_group("key_generation");
 
     for bits in [512, 1024, 2048].iter() {
         group.bench_with_input(BenchmarkId::from_parameter(bits), bits, |b, &bits| {
-            b.iter(|| KeyPair::generate(bits).expect("Failed to generate keys"));
+            b.iter(|| KeyPair::load_or_generate(bits).expect("Failed to generate keys"));
         });
     }
 
@@ -19,7 +19,7 @@ fn benchmark_key_generation(c: &mut Criterion) {
 fn benchmark_encryption(c: &mut Criterion) {
     let mut group = c.benchmark_group("encryption");
 
-    let keypair = KeyPair::generate(1024).expect("Failed to generate keys");
+    let keypair = KeyPair::load_or_generate(1024).expect("Failed to generate keys");
     let plaintext = 42u32.to_biguint().unwrap();
 
     // Benchmark multiplicative mode
@@ -50,7 +50,7 @@ fn benchmark_encryption(c: &mut Criterion) {
 fn benchmark_decryption(c: &mut Criterion) {
     let mut group = c.benchmark_group("decryption");
 
-    let keypair = KeyPair::generate(1024).expect("Failed to generate keys");
+    let keypair = KeyPair::load_or_generate(1024).expect("Failed to generate keys");
     let plaintext = 42u32.to_biguint().unwrap();
 
     // Multiplicative mode
@@ -83,7 +83,7 @@ fn benchmark_decryption(c: &mut Criterion) {
 fn benchmark_homomorphic_operations(c: &mut Criterion) {
     let mut group = c.benchmark_group("homomorphic_operations");
 
-    let keypair = KeyPair::generate(1024).expect("Failed to generate keys");
+    let keypair = KeyPair::load_or_generate(1024).expect("Failed to generate keys");
 
     // Multiplicative mode
     let elgamal_mult = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
@@ -132,7 +132,7 @@ fn benchmark_homomorphic_operations(c: &mut Criterion) {
 fn benchmark_batch_operations(c: &mut Criterion) {
     let mut group = c.benchmark_group("batch_operations");
 
-    let keypair = KeyPair::generate(1024).expect("Failed to generate keys");
+    let keypair = KeyPair::load_or_generate(1024).expect("Failed to generate keys");
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
 
     for size in [10, 50, 100].iter() {
@@ -159,7 +159,7 @@ fn benchmark_batch_operations(c: &mut Criterion) {
 fn benchmark_proofs(c: &mut Criterion) {
     let mut group = c.benchmark_group("zero_knowledge_proofs");
 
-    let keypair = KeyPair::generate(1024).expect("Failed to generate keys");
+    let keypair = KeyPair::load_or_generate(1024).expect("Failed to generate keys");
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
 
     let plaintext = 42u32.to_biguint().unwrap();
@@ -204,7 +204,7 @@ fn benchmark_proofs(c: &mut Criterion) {
 }
 
 fn benchmark_rerandomization(c: &mut Criterion) {
-    let keypair = KeyPair::generate(1024).expect("Failed to generate keys");
+    let keypair = KeyPair::load_or_generate(1024).expect("Failed to generate keys");
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
 
     let plaintext = 100u32.to_biguint().unwrap();

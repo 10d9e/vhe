@@ -60,7 +60,7 @@ use vhe::{KeyPair, ElGamal, HomomorphicMode};
 use num_bigint::ToBigUint;
 
 // Generate keys
-let keypair = KeyPair::generate(1024)?;
+let keypair = KeyPair::load_or_generate(1024)?;
 
 // Create ElGamal instance
 let elgamal = ElGamal::new(

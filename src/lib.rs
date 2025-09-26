@@ -1,4 +1,4 @@
-//! # ElGamal Homomorphic Encryption Library
+//! # VHE - Verifiable Homomorphic Encryption Library
 //!
 //! This library provides a complete implementation of ElGamal encryption with:
 //! - Multiplicative and additive homomorphic modes
@@ -18,7 +18,7 @@
 //! use vhe::{KeyPair, ElGamal, HomomorphicMode, HomomorphicOperations};
 //!
 //! // Generate keys
-//! let keypair = KeyPair::generate(512).unwrap();
+//! let keypair = KeyPair::load_or_generate(512).unwrap();
 //!
 //! // Create ElGamal instance for additive operations
 //! let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
@@ -69,7 +69,7 @@ mod tests {
 
     #[test]
     fn test_basic_workflow() {
-        let keypair = KeyPair::generate_for_testing(512);
+        let keypair = KeyPair::load_or_generate(512);
         assert!(keypair.is_ok());
 
         let keypair = keypair.unwrap();

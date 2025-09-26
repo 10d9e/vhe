@@ -194,7 +194,7 @@ mod tests {
     #[test]
     fn test_encryption_decryption() {
         // Arrange
-        let keypair = KeyPair::generate(512).unwrap();
+        let keypair = KeyPair::load_or_generate(512).unwrap();
         let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
         let plaintext = 42u32.to_biguint().unwrap();
         

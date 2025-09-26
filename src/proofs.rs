@@ -614,7 +614,7 @@ mod tests {
     #[test]
     fn test_safe_prime_proof() {
         // This test specifically uses safe primes to ensure they work
-        let keypair = KeyPair::generate(1024); // Use 1024-bit for better reliability
+        let keypair = KeyPair::load_or_generate(1024); // Use 1024-bit for better reliability
 
         // Skip test if generation fails (can happen in CI with limited resources)
         let keypair = match keypair {

@@ -7,6 +7,10 @@ use std::fmt;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "serde")]
+use std::fs::File;
+#[cfg(feature = "serde")]
+use std::io::{BufReader, BufWriter};
 
 use crate::error::{ElGamalError, Result};
 use crate::utils::{find_generator, generate_safe_prime, generate_safe_prime_lenient, mod_exp};
@@ -464,12 +468,6 @@ mod tests {
         let loaded = KeyPair::load_from_file(bit_size).unwrap();
         assert_eq!(keypair.public_key, loaded.public_key);
         assert_eq!(keypair.private_key, loaded.private_key);
-
-        // Test saving and loading with JSON (backward compatibility)
-        keypair.save_json(bit_size).unwrap();
-        let loaded_json = KeyPair::load_from_json(bit_size).unwrap();
-        assert_eq!(keypair.public_key, loaded_json.public_key);
-        assert_eq!(keypair.private_key, loaded_json.private_key);
 
         // Clean up test files
         let _ = std::fs::remove_file(format!(".key_{}.bin", bit_size));

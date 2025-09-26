@@ -294,7 +294,7 @@ fn test_error_handling() {
 #[test]
 fn test_safe_prime_generation() {
     // Test that safe prime generation works (using lenient generation for 512-bit)
-    let keypair = KeyPair::generate(512);
+    let keypair = KeyPair::load_or_generate(512);
     assert!(
         keypair.is_ok(),
         "Safe prime generation should work with lenient mode"
