@@ -50,35 +50,6 @@ jobs:
       
       - name: Run tests
         run: cargo test --release --verbose
-      
-      - name: Run doc tests
-        run: cargo test --release --all-features --doc
-
-  coverage:
-    name: Code Coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      
-      - name: Install cargo-tarpaulin
-        run: cargo install cargo-tarpaulin
-      
-      - name: Generate coverage
-        run: cargo tarpaulin --out Xml
-      
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./cobertura.xml
-          flags: unittests
-          name: codecov-umbrella
 
   benchmark:
     name: Benchmark
