@@ -5,6 +5,7 @@ use num_traits::One;
 
 use crate::encryption::ElGamal;
 use crate::error::{ElGamalError, Result};
+use crate::keys::{KeyPair, PrivateKey};
 use crate::types::{Ciphertext, HomomorphicMode};
 use crate::utils::{mod_exp, mod_inverse};
 
@@ -254,7 +255,7 @@ mod tests {
 
     #[test]
     fn test_homomorphic_multiplication() {
-        let keypair = KeyPair::generate(512).unwrap();
+        let keypair = KeyPair::generate_for_testing(512).unwrap();
         let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
 
         let m1 = 7u32.to_biguint().unwrap();
@@ -272,7 +273,7 @@ mod tests {
 
     #[test]
     fn test_homomorphic_addition() {
-        let keypair = KeyPair::generate(512).unwrap();
+        let keypair = KeyPair::generate_for_testing(512).unwrap();
         let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
 
         let m1 = 15u32.to_biguint().unwrap();
@@ -290,7 +291,7 @@ mod tests {
 
     #[test]
     fn test_batch_operations() {
-        let keypair = KeyPair::generate(512).unwrap();
+        let keypair = KeyPair::generate_for_testing(512).unwrap();
         let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
 
         let values = vec![10u32, 20u32, 15u32];

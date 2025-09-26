@@ -15,10 +15,10 @@
 //! ## Example
 //!
 //! ```rust
-//! use elgamal_he::{KeyPair, ElGamal, HomomorphicMode};
+//! use vhe::{KeyPair, ElGamal, HomomorphicMode, HomomorphicOperations};
 //!
 //! // Generate keys
-//! let keypair = KeyPair::generate(512);
+//! let keypair = KeyPair::generate(512).unwrap();
 //!
 //! // Create ElGamal instance for additive operations
 //! let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
@@ -69,7 +69,10 @@ mod tests {
 
     #[test]
     fn test_basic_workflow() {
-        let keypair = KeyPair::generate(512).unwrap();
+        let keypair = KeyPair::generate_for_testing(512);
+        assert!(keypair.is_ok());
+
+        let keypair = keypair.unwrap();
         let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
 
         let m = 42u32.to_biguint().unwrap();

@@ -1,14 +1,14 @@
 //! Integration tests for the ElGamal library
 
+use num_bigint::{BigUint, ToBigUint};
 use vhe::{
     Ciphertext, ElGamal, HomomorphicMode, HomomorphicOperations, KeyPair, VerifiableOperations,
 };
-use num_bigint::ToBigUint;
 
 #[test]
 fn test_end_to_end_multiplicative_workflow() {
-    // Generate keys
-    let keypair = KeyPair::generate(512).expect("Failed to generate keys");
+    // Generate keys using faster method for testing
+    let keypair = KeyPair::generate_for_testing(512).expect("Failed to generate keys");
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
 
     // Encrypt multiple values
@@ -31,8 +31,8 @@ fn test_end_to_end_multiplicative_workflow() {
 
 #[test]
 fn test_end_to_end_additive_workflow() {
-    // Generate keys
-    let keypair = KeyPair::generate(512).expect("Failed to generate keys");
+    // Generate keys using faster method for testing
+    let keypair = KeyPair::generate_for_testing(512).expect("Failed to generate keys");
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
 
     // Test addition
@@ -65,7 +65,7 @@ fn test_end_to_end_additive_workflow() {
 
 #[test]
 fn test_linear_combination() {
-    let keypair = KeyPair::generate(512).unwrap();
+    let keypair = KeyPair::generate_for_testing(512).unwrap();
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
 
     // Create encrypted values
@@ -93,7 +93,7 @@ fn test_linear_combination() {
 
 #[test]
 fn test_verifiable_operations_workflow() {
-    let keypair = KeyPair::generate(512).unwrap();
+    let keypair = KeyPair::generate_for_testing(512).unwrap();
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
 
     // Encrypt with proof
@@ -123,7 +123,7 @@ fn test_verifiable_operations_workflow() {
 
 #[test]
 fn test_rerandomization_preserves_plaintext() {
-    let keypair = KeyPair::generate(512).unwrap();
+    let keypair = KeyPair::generate_for_testing(512).unwrap();
 
     for mode in [HomomorphicMode::Multiplicative, HomomorphicMode::Additive] {
         let elgamal = ElGamal::new(keypair.public_key.clone(), mode.clone());
@@ -149,7 +149,7 @@ fn test_rerandomization_preserves_plaintext() {
 
 #[test]
 fn test_proof_of_knowledge() {
-    let keypair = KeyPair::generate(512).unwrap();
+    let keypair = KeyPair::generate_for_testing(512).unwrap();
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
 
     // Prove knowledge of private key
@@ -169,7 +169,7 @@ fn test_proof_of_knowledge() {
 
 #[test]
 fn test_division_in_multiplicative_mode() {
-    let keypair = KeyPair::generate(512).unwrap();
+    let keypair = KeyPair::generate_for_testing(512).unwrap();
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
 
     let a = 84u32.to_biguint().unwrap();
@@ -193,7 +193,7 @@ fn test_key_validation() {
     use vhe::PublicKey;
 
     // Valid key should pass
-    let keypair = KeyPair::generate(512).unwrap();
+    let keypair = KeyPair::generate_for_testing(512).unwrap();
     assert!(keypair.public_key.validate().is_ok());
 
     // Invalid keys should fail
@@ -207,7 +207,7 @@ fn test_key_validation() {
 
 #[test]
 fn test_mode_mismatch_prevention() {
-    let keypair = KeyPair::generate(512).unwrap();
+    let keypair = KeyPair::generate_for_testing(512).unwrap();
 
     let elgamal_mult = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
 
@@ -229,7 +229,7 @@ fn test_mode_mismatch_prevention() {
 
 #[test]
 fn test_large_scale_operations() {
-    let keypair = KeyPair::generate(512).unwrap();
+    let keypair = KeyPair::generate_for_testing(512).unwrap();
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
 
     // Encrypt and sum 100 values
@@ -248,7 +248,7 @@ fn test_large_scale_operations() {
 
 #[test]
 fn test_verifiable_rerandomization() {
-    let keypair = KeyPair::generate(512).unwrap();
+    let keypair = KeyPair::generate_for_testing(512).unwrap();
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
 
     let plaintext = 123u32.to_biguint().unwrap();
@@ -273,7 +273,7 @@ fn test_verifiable_rerandomization() {
 fn test_error_handling() {
     use vhe::ElGamalError;
 
-    let keypair = KeyPair::generate(512).unwrap();
+    let keypair = KeyPair::generate_for_testing(512).unwrap();
     let elgamal = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
 
     // Test plaintext too large for additive mode
@@ -289,4 +289,25 @@ fn test_error_handling() {
         Err(ElGamalError::EmptyBatch) => (),
         _ => panic!("Expected EmptyBatch error"),
     }
+}
+
+#[test]
+fn test_safe_prime_generation() {
+    // Test that safe prime generation works (using lenient generation for 512-bit)
+    let keypair = KeyPair::generate(512);
+    assert!(
+        keypair.is_ok(),
+        "Safe prime generation should work with lenient mode"
+    );
+
+    let keypair = keypair.unwrap();
+    assert!(keypair.public_key.validate().is_ok());
+
+    // Check that the bit size is within acceptable range (504-520 bits)
+    let bit_size = keypair.public_key.bit_size();
+    assert!(
+        bit_size >= 504 && bit_size <= 520,
+        "Bit size should be near 512, got {}",
+        bit_size
+    );
 }

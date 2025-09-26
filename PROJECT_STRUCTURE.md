@@ -191,7 +191,7 @@ Where:
 elgamal-he = "0.1.0"
 
 // In your code
-use elgamal_he::{KeyPair, ElGamal, HomomorphicMode};
+use vhe::{KeyPair, ElGamal, HomomorphicMode};
 ```
 
 ### As a Service

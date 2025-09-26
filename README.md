@@ -56,7 +56,7 @@ cargo build --release
 ### Basic Encryption
 
 ```rust
-use elgamal_he::{KeyPair, ElGamal, HomomorphicMode};
+use vhe::{KeyPair, ElGamal, HomomorphicMode};
 use num_bigint::ToBigUint;
 
 // Generate keys
@@ -83,7 +83,7 @@ assert_eq!(result, 30u32.to_biguint().unwrap());
 ### Verifiable Operations
 
 ```rust
-use elgamal_he::{VerifiableOperations, HomomorphicOperations};
+use vhe::{VerifiableOperations, HomomorphicOperations};
 
 // Encrypt with proof
 let (ciphertext, proof) = elgamal.encrypt_with_proof(&value, None)?;
