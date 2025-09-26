@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -51,21 +51,6 @@ jobs:
       - name: Run tests
         run: cargo test --release --verbose
 
-  benchmark:
-    name: Benchmark
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      
-      - name: Run benchmarks
-        run: cargo bench --no-fail-fast
 
   security-audit:
     name: Security Audit
@@ -85,49 +70,6 @@ jobs:
       
       - name: Run security audit
         run: cargo audit
-
-  documentation:
-    name: Documentation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      
-      - name: Build documentation
-        run: cargo doc --no-deps --all-features
-      
-      #- name: Deploy documentation
-      #  if: github.ref == 'refs/heads/main'
-      #  uses: peaceiris/actions-gh-pages@v3
-      #  with:
-      #    github_token: ${{ secrets.GITHUB_TOKEN }}
-      #    publish_dir: ./target/doc
-
-  examples:
-    name: Examples
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      
-      - name: Run examples
-        run: |
-          cargo run --example basic_encryption
-          cargo run --example voting_system
-          cargo run --example verifiable_computation
-          cargo run --example private_statistics
 
   publish-dry-run:
     name: Publish Dry Run

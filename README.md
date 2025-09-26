@@ -13,32 +13,6 @@ Rust implementation of ElGamal homomorphic encryption with non-interactive zero-
 - **Re-randomization**: Generate different ciphertexts for the same plaintext
 - **Zero-knowledge proofs**: Prove correctness without revealing secrets
 - **No trusted setup**: Unlike zk-SNARKs, no ceremony needed
-- **Bincode serialization**: Compact binary serialization for keys and ciphertexts
-
-## Project Structure
-
-```
-vhe/
-├── Cargo.toml           # Project configuration
-├── README.md            # This file
-├── src/
-│   ├── lib.rs          # Library entry point
-│   ├── error.rs        # Error types
-│   ├── types.rs        # Core data structures
-│   ├── utils.rs        # Utility functions
-│   ├── keys.rs         # Key generation and management
-│   ├── encryption.rs   # Core ElGamal operations
-│   ├── homomorphic.rs  # Homomorphic operations
-│   └── proofs.rs       # Zero-knowledge proofs
-└── examples/
-    ├── basic_encryption.rs      # Basic usage example
-    ├── operator_overrides.rs   # Operator overrides demonstration
-    ├── verifiable_operators.rs # Verifiable operators with proofs
-    ├── voting_system.rs        # Privacy-preserving voting
-    ├── verifiable_computation.rs # Verifiable operations
-    └── private_statistics.rs   # Private analytics
-
-```
 
 ## Installation
 
@@ -247,35 +221,6 @@ let diff = (&ctx1 - &ctx2)?;       // Subtraction
 let neg = (-&ctx1)?;               // Negation
 let scalar_add = (&ctx1 + &2u32.to_biguint().unwrap())?; // Scalar addition
 let scalar_mul = (&ctx1 * &2u32.to_biguint().unwrap())?; // Scalar multiplication
-```
-
-### Mode-Aware Operations
-
-Operations automatically validate the homomorphic mode:
-
-```rust
-// Additive mode supports: +, -, *, negation, scalar operations
-let elgamal_add = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Additive);
-let ctx_add = elgamal_add.wrap_ciphertext(ct1);
-let result = (&ctx_add + &ctx_add)?; // ✓ Works
-
-// Multiplicative mode supports: *, /, scalar operations
-let elgamal_mult = ElGamal::new(keypair.public_key.clone(), HomomorphicMode::Multiplicative);
-let ctx_mult = elgamal_mult.wrap_ciphertext(ct1);
-let product = (&ctx_mult * &ctx_mult)?; // ✓ Works
-let quotient = (&ctx_mult / &ctx_mult)?; // ✓ Works
-```
-
-### Error Handling
-
-Operations fail gracefully when used in the wrong mode:
-
-```rust
-// This will return an error in multiplicative mode
-let result = (&ctx_mult + &ctx_mult); // ❌ Returns ElGamalError::InvalidOperation
-
-// This will return an error in additive mode  
-let result = (&ctx_add / &ctx_add); // ❌ Returns ElGamalError::InvalidOperation
 ```
 
 ### Operators with Verifiable Proofs
