@@ -1,8 +1,7 @@
 //! Example demonstrating operator overrides for homomorphic operations
 
 use num_bigint::ToBigUint;
-use std::ops::{Add, Div, Mul, Neg, Sub};
-use vhe::{CiphertextWithContext, ElGamal, ElGamalOperators, HomomorphicMode, KeyPair};
+use vhe::{ElGamal, HomomorphicMode, KeyPair};
 
 fn main() {
     println!("=== Operator Overrides Demo ===\n");
@@ -37,12 +36,8 @@ fn test_additive_operators(keypair: &KeyPair) {
     println!("Plaintext values: m1 = {}, m2 = {}", m1, m2);
 
     // Encrypt values
-    let ct1 = elgamal.encrypt(&m1).unwrap();
-    let ct2 = elgamal.encrypt(&m2).unwrap();
-
-    // Wrap with context for operator overrides
-    let ctx1 = elgamal.wrap_ciphertext(ct1);
-    let ctx2 = elgamal.wrap_ciphertext(ct2);
+    let ctx1 = elgamal.encrypt_with_context(&m1).unwrap();
+    let ctx2 = elgamal.encrypt_with_context(&m2).unwrap();
 
     // Test addition: ct1 + ct2
     let ct_sum = (&ctx1 + &ctx2).unwrap();
@@ -83,12 +78,8 @@ fn test_multiplicative_operators(keypair: &KeyPair) {
     println!("Plaintext values: m1 = {}, m2 = {}", m1, m2);
 
     // Encrypt values
-    let ct1 = elgamal.encrypt(&m1).unwrap();
-    let ct2 = elgamal.encrypt(&m2).unwrap();
-
-    // Wrap with context for operator overrides
-    let ctx1 = elgamal.wrap_ciphertext(ct1);
-    let ctx2 = elgamal.wrap_ciphertext(ct2);
+    let ctx1 = elgamal.encrypt_with_context(&m1).unwrap();
+    let ctx2 = elgamal.encrypt_with_context(&m2).unwrap();
 
     // Test multiplication: ct1 * ct2
     let ct_product = (&ctx1 * &ctx2).unwrap();
@@ -121,8 +112,7 @@ fn test_scalar_operations(keypair: &KeyPair) {
     println!("Plaintext: m = {}, scalar = {}", m, scalar);
 
     // Encrypt value
-    let ct = elgamal.encrypt(&m).unwrap();
-    let ctx = elgamal.wrap_ciphertext(ct);
+    let ctx = elgamal.encrypt_with_context(&m).unwrap();
 
     // Test scalar addition: ct + scalar
     let ct_scalar_add = (&ctx + &scalar).unwrap();
@@ -170,20 +160,15 @@ fn test_error_handling(keypair: &KeyPair) {
     let m2 = 5u32.to_biguint().unwrap();
     let scalar = 2u32.to_biguint().unwrap();
 
-    let ct1_add = elgamal_add.encrypt(&m1).unwrap();
-    let ct2_add = elgamal_add.encrypt(&m2).unwrap();
-    let ct1_mult = elgamal_mult.encrypt(&m1).unwrap();
-    let ct2_mult = elgamal_mult.encrypt(&m2).unwrap();
-
     // Test that division fails in additive mode
-    let ctx1_add = elgamal_add.wrap_ciphertext(ct1_add);
-    let ctx2_add = elgamal_add.wrap_ciphertext(ct2_add);
+    let ctx1_add = elgamal_add.encrypt_with_context(&m1).unwrap();
+    let ctx2_add = elgamal_add.encrypt_with_context(&m2).unwrap();
     let division_result = &ctx1_add / &ctx2_add;
     println!("Division in additive mode: {:?}", division_result.is_err());
 
     // Test that subtraction fails in multiplicative mode
-    let ctx1_mult = elgamal_mult.wrap_ciphertext(ct1_mult);
-    let ctx2_mult = elgamal_mult.wrap_ciphertext(ct2_mult);
+    let ctx1_mult = elgamal_mult.encrypt_with_context(&m1).unwrap();
+    let ctx2_mult = elgamal_mult.encrypt_with_context(&m2).unwrap();
     let subtraction_result = &ctx1_mult - &ctx2_mult;
     println!(
         "Subtraction in multiplicative mode: {:?}",
@@ -198,7 +183,7 @@ fn test_error_handling(keypair: &KeyPair) {
     );
 
     // Test that scalar addition fails in multiplicative mode
-    let ctx1_mult_scalar = elgamal_mult.wrap_ciphertext(elgamal_mult.encrypt(&m1).unwrap());
+    let ctx1_mult_scalar = elgamal_mult.encrypt_with_context(&m1).unwrap();
     let scalar_add_result = &ctx1_mult_scalar + &scalar;
     println!(
         "Scalar addition in multiplicative mode: {:?}",

@@ -6,6 +6,7 @@ use std::time::Instant;
 use vhe::{Ciphertext, ElGamal, HomomorphicMode, HomomorphicOperations, KeyPair};
 
 /// Represents encrypted data from a participant
+#[allow(dead_code)]
 struct EncryptedData {
     participant_id: String,
     encrypted_value: Ciphertext,

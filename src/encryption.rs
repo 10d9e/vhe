@@ -9,6 +9,7 @@ use crate::error::{ElGamalError, Result};
 use crate::keys::{PrivateKey, PublicKey};
 use crate::types::{Ciphertext, ElGamalConfig, HomomorphicMode};
 use crate::utils::{mod_exp, mod_inverse};
+use crate::CiphertextWithContext;
 
 /// ElGamal homomorphic encryption system
 #[derive(Clone, Debug)]
@@ -112,6 +113,12 @@ impl ElGamal {
     /// Encrypt a plaintext message
     pub fn encrypt(&self, plaintext: &BigUint) -> Result<Ciphertext> {
         self.encrypt_with_randomness(plaintext, None)
+    }
+
+    /// Encrypt with context
+    pub fn encrypt_with_context(&self, plaintext: &BigUint) -> Result<CiphertextWithContext<'_>> {
+        let ciphertext = self.encrypt(plaintext)?;
+        Ok(CiphertextWithContext::new(ciphertext, self))
     }
 
     /// Encrypt with specific randomness (for testing or proof generation)

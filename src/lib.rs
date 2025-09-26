@@ -59,7 +59,6 @@
 //! let sum = (&ctx1 + &ctx2).unwrap();        // Addition
 //! let diff = (&ctx1 - &ctx2).unwrap();       // Subtraction
 //! let neg = (-&ctx1).unwrap();               // Negation
-//! let scalar_add = (&ctx1 + &5u32.into()).unwrap(); // Scalar addition
 //!
 //! // Decrypt results
 //! let sum_result = elgamal.decrypt(&sum, &keypair.private_key).unwrap();
@@ -102,10 +101,7 @@ mod tests {
 
     #[test]
     fn test_basic_workflow() {
-        #[cfg(feature = "serde")]
-        let keypair = KeyPair::load_or_generate(512);
-        #[cfg(not(feature = "serde"))]
-        let keypair = KeyPair::generate(512);
+        let keypair = KeyPair::generate_for_testing(512);
         assert!(keypair.is_ok());
 
         let keypair = keypair.unwrap();
